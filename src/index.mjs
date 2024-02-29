@@ -1,7 +1,10 @@
 import express from "express";
 
 const app = express();
+
 const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
 
 const mockUsers = [
   { id: 1, username: "anson", displayName: "Anson" },
@@ -13,43 +16,61 @@ const mockUsers = [
   { id: 7, username: "marily", displayName: "Marily" }
 ];
 
-app.get("/", (req, res) => {
-  res.status(201).json({ msg: "Hello Again!" });
-});
+app.get("/", (request, response) => {
+  response.status(201).send({ msg: "Hello Again!" });
+})
 
-app.get('/api/users', (req, res) => {
-  const { query: { filter, value } } = req;
-
-  if (!filter || !value) {
-    return res.json(mockUsers);
+app.get('/api/users', (request, response) => {
+  console.log(request.query)
+  const { query: { filter, value } } = request
+  // whe filter and value are undefined
+  if (!filter && !value) {
+    return response.send(mockUsers);
   }
 
-  const filteredUsers = mockUsers.filter(user => user[filter].toLowerCase().includes(value.toLowerCase()));
-  res.json(filteredUsers);
-});
+  if (filter && value) {
+    // return response.send(mockUsers.filter((user) => user.username === value));
+    return response.send(mockUsers.filter((user) => user[filter].includes(value)));
+  }
+  return response.send(mockUsers);
+})
 
-app.get('/api/users/:id', (req, res) => {
-  const parsedId = parseInt(req.params.id);
+app.post('/api/users', (request, response) => {
+  console.log(request.body)
+  const { body } = request
+  const newUser = { id: mockUsers[mockUsers.length - 1].id + 1, ...body }
+  mockUsers.push(newUser)
+  return response.status(201).send(newUser);
+})
 
+app.get('/api/users/:id', (request, response) => {
+  // console.log(request.params)
+  const parsedId = parseInt(request.params.id)
+  console.log(parsedId)
   if (isNaN(parsedId)) {
-    return res.status(400).json({ msg: "Bad request. Invalid ID" });
+    return response.status(400).send({ msg: "Bad request. Invalid ID" })
   }
 
-  const findUser = mockUsers.find(user => user.id === parsedId);
+  const findUser = mockUsers.find((user) => user.id === parsedId)
 
   if (!findUser) {
-    return res.sendStatus(404);
+    return response.sendStatus(404)
+  } else {
+    return response.send(findUser)
   }
+})
 
-  res.json(findUser);
-});
-
-app.get('/api/products', (req, res) => {
-  res.json([
+app.get('/api/products', (request, response) => {
+  response.send([
     { id: 123, name: 'chicken breast', price: 12.99 }
-  ]);
-});
+  ])
+})
 
 app.listen(PORT, () => {
   console.log(`Running on port ${PORT}`);
-});
+})
+
+//  localhost:3000
+//  localhost:3000/users
+//  localhost:3000/products?key=value&key=value2
+
