@@ -13,53 +13,43 @@ const mockUsers = [
   { id: 7, username: "marily", displayName: "Marily" }
 ];
 
-app.get("/", (request, response) => {
-  response.status(201).send({ msg: "Hello Again!" });
-})
+app.get("/", (req, res) => {
+  res.status(201).json({ msg: "Hello Again!" });
+});
 
-app.get('/api/users', (request, response) => {
-  console.log(request.query)
-  const {query:{filter, value}} =request
-  // whe filter and value are undefined
-  // if(!filter && !value) {
-  //   return response.send(mockUsers);
-  // }
+app.get('/api/users', (req, res) => {
+  const { query: { filter, value } } = req;
 
-  if(filter && value) {
-    // return response.send(mockUsers.filter((user) => user.username === value));
-    return response.send(mockUsers.filter((user) => user[filter].includes(value)));
+  if (!filter || !value) {
+    return res.json(mockUsers);
   }
-  return response.send(mockUsers);
-})
 
-app.get('/api/users/:id', (request, response) => {
-  // console.log(request.params)
-  const parsedId = parseInt(request.params.id)
-  console.log(parsedId)
+  const filteredUsers = mockUsers.filter(user => user[filter].toLowerCase().includes(value.toLowerCase()));
+  res.json(filteredUsers);
+});
+
+app.get('/api/users/:id', (req, res) => {
+  const parsedId = parseInt(req.params.id);
+
   if (isNaN(parsedId)) {
-    return response.status(400).send({ msg: "Bad request. Invalid ID" })
+    return res.status(400).json({ msg: "Bad request. Invalid ID" });
   }
 
-  const findUser = mockUsers.find((user) => user.id === parsedId)
+  const findUser = mockUsers.find(user => user.id === parsedId);
 
   if (!findUser) {
-    return response.sendStatus(404)
-  } else {
-    return response.send(findUser)
+    return res.sendStatus(404);
   }
-})
 
-app.get('/api/products', (request, response) => {
-  response.send([
+  res.json(findUser);
+});
+
+app.get('/api/products', (req, res) => {
+  res.json([
     { id: 123, name: 'chicken breast', price: 12.99 }
-  ])
-})
+  ]);
+});
 
 app.listen(PORT, () => {
   console.log(`Running on port ${PORT}`);
-})
-
-//  localhost:3000
-//  localhost:3000/users
-//  localhost:3000/products?key=value&key=value2
-
+});
