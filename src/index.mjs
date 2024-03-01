@@ -16,6 +16,10 @@ const mockUsers = [
   { id: 7, username: "marily", displayName: "Marily" }
 ];
 
+app.listen(PORT, () => {
+  console.log(`Running on port ${PORT}`);
+})
+
 app.get("/", (request, response) => {
   response.status(201).send({ msg: "Hello Again!" });
 })
@@ -66,9 +70,23 @@ app.get('/api/products', (request, response) => {
   ])
 })
 
-app.listen(PORT, () => {
-  console.log(`Running on port ${PORT}`);
-})
+app.put('/api/users/:id', (request, response) => {
+  const { body, params: { id } } = request;
+
+  const parsedId = parseInt(id);
+  if (isNaN(parsedId)) {
+    return response.sendStatus(404);
+  }
+
+  const findUserIndex = mockUsers.findIndex(user => user.id === parsedId);
+
+  if (findUserIndex === -1) return response.sendStatus(404);
+  mockUsers[findUserIndex] = { id: parsedId, ...body };
+
+  return response.sendStatus(200); // Corrigi o erro de digitação aqui
+});
+
+
 
 //  localhost:3000
 //  localhost:3000/users
